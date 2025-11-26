@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="id" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <title>KeuanganKu - Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Init dark mode -->
+  <script>
+    (function () {
+      const theme = localStorage.getItem("theme") || "light";
+      if (theme === "dark") document.documentElement.classList.add("dark");
+    })();
+  </script>
+
+  <style>
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-thumb { background: #999; border-radius: 4px; }
+
+    /* Row swipe (but no overlay!) */
+    .swipe-row {
+      position: relative;
+      overflow: hidden;
+    }
+  </style>
+</head>
+
+<body class="h-full bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+
+  <div id="toast" class="hidden fixed top-16 right-4 z-50 px-4 py-2 rounded-lg shadow-lg text-sm"></div>
+
+  <!-- NAVBAR -->
+  <header class="sticky top-0 z-20 bg-white/70 dark:bg-gray-900/70 backdrop-blur border-b border-gray-200 dark:border-gray-700">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 bg-gradient-to-br from-emerald-400 to-cyan-500 rounded-xl text-white flex items-center justify-center font-bold">Rp</div>
+        <div>
+          <h1 class="text-lg font-semibold">KeuanganKu</h1>
+          <p class="text-xs text-gray-500 dark:text-gray-400">Catatan keuangan pribadi multi-user</p>
+        </div>
+      </div>
+
+      <button id="toggleThemeBtn"
+        class="text-xs px-3 py-1.5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center gap-2">
+        <span id="themeLabel">Tema</span>
+        <span class="w-4 h-4 rounded-full bg-gray-800 dark:bg-yellow-300"></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- LOGIN -->
+  <section id="loginSection" class="max-w-md mx-auto mt-12 hidden">
+    <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg">
+      <h2 class="text-lg font-semibold mb-3">Masukkan User ID</h2>
+      <p class="text-xs text-gray-500 mb-3">Gunakan email, nama, atau ID bebas.</p>
+
+      <input id="userIdInput" type="text"
+        class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-900"
+        placeholder="contoh: admin@email.com">
+
+      <button id="saveUserIdBtn"
+        class="w-full mt-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg py-2 text-sm">Masuk</button>
+    </div>
+  </section>
+
+  <!-- DASHBOARD -->
+  <section id="dashboardSection" class="max-w-6xl mx-auto px-4 py-6 hidden">
+
+    <!-- USER + FILTER -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div>
+        <p class="text-xs text-gray-500">User Aktif</p>
+        <div class="flex items-center gap-2 mt-1">
+          <span id="currentUserLabel"
+            class="text-xs px-2 py-1 rounded-full bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-200"></span>
+          <button id="changeUserBtn"
+            class="text-xs px-2 py-1 rounded-full border border-gray-300 dark:border-gray-600">Ganti User</button>
+        </div>
+      </div>
+
+      <div class="flex items-end gap-2 text-xs">
+        <div>
+          <label class="block mb-1">Bulan</label>
+          <select id="monthSelect"
+            class="rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-2 py-1.5"></select>
+        </div>
+        <div>
+          <label class="block mb-1">Tahun</label>
+          <select id="yearSelect"
+            class="rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-2 py-1.5"></select>
+        </div>
+        <button id="refreshBtn"
+          class="text-xs px-3 py-1.5 rounded-full bg-blue-500 hover:bg-blue-600 text-white">Refresh</button>
+      </div>
+    </div>
+
+    <p id="loadingIndicator" class="text-xs text-gray-500 mt-2 hidden flex items-center gap-1">
+      <span class="w-3 h-3 border-2 border-gray-400 border-t-transparent animate-spin inline-block rounded-full"></span>
+      Memuat data...
+    </p>
+
+    <!-- SUMMARY -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+      <div class="bg-white dark:bg-gray-800 p-4 rounded-2xl shadow border border-emerald-100 dark:border-emerald-900/40">
+        <p class="text-xs text-gray-500">Total Pemasukan</p>
+        <p id="totalMasukLabel" class="text-lg font-semibold text-emerald-600 dark:text-emerald-300 mt-1"></p>
+      </div>
+      <div class="bg-white dark:bg-gray-800 p-4 rounded-2xl shadow border border-rose-100 dark:border-rose-900/40">
+        <p class="text-xs text-gray-500">Total Pengeluaran</p>
+        <p id="totalKeluarLabel" class="text-lg font-semibold text-rose-600 dark:text-rose-300 mt-1"></p>
+      </div>
+      <div class="bg-white dark:bg-gray-800 p-4 rounded-2xl shadow border border-indigo-100 dark:border-indigo-900/40">
+        <p class="text-xs text-gray-500">Saldo</p>
+        <p id="saldoLabel" class="text-lg font-semibold text-indigo-600 dark:text-indigo-300 mt-1"></p>
+      </div>
+    </div>
+
+    <!-- CHARTS -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+      <div class="bg-white dark:bg-gray-800 p-4 rounded-2xl shadow h-64">
+        <p class="text-xs text-gray-500 mb-2">Pengeluaran per Kategori</p>
+        <div class="h-52"><canvas id="kategoriChart"></canvas></div>
+      </div>
+
+      <div class="bg-white dark:bg-gray-800 p-4 rounded-2xl shadow h-64">
+        <p class="text-xs text-gray-500 mb-2">Pengeluaran per Sumber</p>
+        <div class="h-52"><canvas id="sumberChart"></canvas></div>
+      </div>
+    </div>
+
+    <!-- FORM + REKAP -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-6">
+
+      <!-- FORM -->
+      <div class="bg-white dark:bg-gray-800 p-4 rounded-2xl shadow">
+        <h3 class="text-sm font-semibold mb-3">Tambah Transaksi</h3>
+
+        <form id="addForm" class="space-y-3 text-xs">
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label>Tanggal</label>
+              <input type="date" id="tanggalInput"
+                class="w-full mt-1 rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 px-2 py-1.5" />
+            </div>
+            <div>
+              <label>Jenis</label>
+              <select id="jenisSelect"
+                class="w-full mt-1 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-2 py-1.5">
+                <option value="Pemasukan">Pemasukan</option>
+                <option value="Pengeluaran">Pengeluaran</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label>Kategori</label>
+              <select id="kategoriSelect"
+                class="w-full mt-1 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-2 py-1.5">
+                <option value="">(Pilih / ketik baru)</option>
+              </select>
+              <input id="kategoriBaruInput" type="text" placeholder="Kategori baru"
+                class="mt-1 w-full rounded-lg border dark:border-gray-700 px-2 py-1.5 bg-gray-50 dark:bg-gray-900" />
+            </div>
+
+            <div>
+              <label>Sumber</label>
+              <select id="sumberSelect"
+                class="w-full mt-1 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-2 py-1.5">
+                <option value="">(Pilih / ketik baru)</option>
+              </select>
+              <input id="sumberBaruInput" type="text" placeholder="Sumber baru"
+                class="mt-1 w-full rounded-lg border dark:border-gray-700 px-2 py-1.5 bg-gray-50 dark:bg-gray-900" />
+            </div>
+          </div>
+
+          <div>
+            <label>Deskripsi</label>
+            <textarea id="deskripsiInput" class="w-full mt-1 rounded-lg border dark:border-gray-700 px-2 py-1.5 bg-gray-50 dark:bg-gray-900"
+              rows="2"></textarea>
+          </div>
+
+          <div>
+            <label>Jumlah</label>
+            <input type="number" id="jumlahInput"
+              class="w-full mt-1 rounded-lg border dark:border-gray-700 px-2 py-1.5 bg-gray-50 dark:bg-gray-900"
+              placeholder="contoh: 2000000" />
+          </div>
+
+          <button type="submit"
+            class="w-full bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg py-2 mt-3">Simpan</button>
+        </form>
+      </div>
+
+      <!-- REKAP -->
+      <div class="bg-white dark:bg-gray-800 p-4 rounded-2xl shadow">
+        <h3 class="text-sm font-semibold mb-3">Rekap per Kategori</h3>
+
+        <div class="max-h-72 overflow-auto border border-gray-200 dark:border-gray-700 rounded-lg">
+          <table class="w-full text-xs">
+            <thead class="bg-gray-50 dark:bg-gray-900 sticky top-0">
+              <tr>
+                <th class="px-2 py-1 text-left">Kategori</th>
+                <th class="px-2 py-1 text-right">Masuk</th>
+                <th class="px-2 py-1 text-right">Keluar</th>
+                <th class="px-2 py-1 text-right">Saldo</th>
+              </tr>
+            </thead>
+            <tbody id="rekapKategoriBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- FILTER + TABLE -->
+    <div class="bg-white dark:bg-gray-800 p-4 rounded-2xl shadow mt-6">
+
+      <div class="flex flex-col md:flex-row justify-between md:items-end gap-3 mb-4">
+        <div class="flex flex-wrap gap-3 text-xs">
+          <div>
+            <label>Filter Jenis</label>
+            <select id="filterJenisSelect"
+              class="w-full mt-1 rounded-lg border dark:border-gray-700 bg-white dark:bg-gray-900 px-2 py-1.5">
+              <option value="ALL">Semua</option>
+              <option value="Pemasukan">Pemasukan</option>
+              <option value="Pengeluaran">Pengeluaran</option>
+            </select>
+          </div>
+
+          <div>
+            <label>Filter Kategori</label>
+            <select id="filterKategoriSelect"
+              class="w-full mt-1 rounded-lg border dark:border-gray-700 bg-white dark:bg-gray-900 px-2 py-1.5">
+              <option value="ALL">Semua</option>
+            </select>
+          </div>
+
+          <div>
+            <label>Filter Sumber</label>
+            <select id="filterSumberSelect"
+              class="w-full mt-1 rounded-lg border dark:border-gray-700 bg-white dark:bg-gray-900 px-2 py-1.5">
+              <option value="ALL">Semua</option>
+            </select>
+          </div>
+        </div>
+
+        <button id="exportCsvBtn"
+          class="text-xs px-3 py-1.5 rounded-full border border-gray-300 dark:border-gray-700">Export CSV</button>
+      </div>
+
+      <div class="overflow-x-auto max-h-80 border border-gray-200 dark:border-gray-700 rounded-lg">
+        <table class="w-full min-w-[700px] text-xs">
+          <thead class="bg-gray-50 dark:bg-gray-900 sticky top-0">
+            <tr>
+              <th class="px-2 py-1 text-left">Aksi</th>
+              <th class="px-2 py-1 text-left">Tanggal</th>
+              <th class="px-2 py-1 text-left">Jenis</th>
+              <th class="px-2 py-1 text-left">Kategori</th>
+              <th class="px-2 py-1 text-left">Sumber</th>
+              <th class="px-2 py-1 text-left">Deskripsi</th>
+              <th class="px-2 py-1 text-right">Jumlah</th>
+            </tr>
+          </thead>
+          <tbody id="transaksiBody"></tbody>
+        </table>
+      </div>
+
+    </div>
+
+  </section>
+
+  <!-- MODAL EDIT -->
+  <div id="editModal"
+    class="fixed inset-0 hidden bg-black/40 backdrop-blur-sm flex items-center justify-center px-4 z-50">
+    <div class="bg-white dark:bg-gray-900 p-4 rounded-2xl shadow-xl max-w-md w-full text-xs">
+      <div class="flex justify-between items-center mb-3">
+        <h3 class="text-sm font-semibold">Edit Transaksi</h3>
+        <button id="editModalCloseBtn" class="px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-lg">Tutup</button>
+      </div>
+
+      <form id="editForm" class="space-y-3">
+        <input type="hidden" id="editIdInput">
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label>Tanggal</label>
+            <input type="date" id="editTanggalInput"
+              class="w-full mt-1 rounded-lg border dark:border-gray-700 px-2 py-1.5 bg-gray-50 dark:bg-gray-900">
+          </div>
+          <div>
+            <label>Jenis</label>
+            <select id="editJenisSelect"
+              class="w-full mt-1 rounded-lg border dark:border-gray-700 px-2 py-1.5 bg-white dark:bg-gray-900">
+              <option value="Pemasukan">Pemasukan</option>
+              <option value="Pengeluaran">Pengeluaran</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label>Kategori</label>
+            <input id="editKategoriInput" type="text"
+              class="w-full mt-1 rounded-lg border dark:border-gray-700 px-2 py-1.5 bg-gray-50 dark:bg-gray-900">
+          </div>
+          <div>
+            <label>Sumber</label>
+            <input id="editSumberInput" type="text"
+              class="w-full mt-1 rounded-lg border dark:border-gray-700 px-2 py-1.5 bg-gray-50 dark:bg-gray-900">
+          </div>
+        </div>
+
+        <div>
+          <label>Deskripsi</label>
+          <textarea id="editDeskripsiInput"
+            class="w-full mt-1 rounded-lg border dark:border-gray-700 px-2 py-1.5 bg-gray-50 dark:bg-gray-900" rows="2"></textarea>
+        </div>
+
+        <div>
+          <label>Jumlah</label>
+          <input id="editJumlahInput" type="number"
+            class="w-full mt-1 rounded-lg border dark:border-gray-700 px-2 py-1.5 bg-gray-50 dark:bg-gray-900">
+        </div>
+
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" id="editModalCancelBtn"
+            class="px-3 py-1.5 border border-gray-300 dark:border-gray-700 rounded-lg">Batal</button>
+          <button type="submit"
+            class="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg">Simpan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- SCRIPT LOGIC -->
+  <script>
+    const API_BASE = "https://script.google.com/macros/s/AKfycbyOxOhgRjnlS21BC9fz9ZYHI4Y-f8UGRSxA_4mFOgpKmOI8Mu7v2gF2diBpW2nJ4LwWLw/exec";
+    
+
+    let currentUserId = null;
+    let currentMonth = new Date().getMonth() + 1;
+    let currentYear = new Date().getFullYear();
+    let transaksiCache = [];
+    let summaryCache = [];
+    let kategoriChart = null;
+    let sumberChart = null;
+    let editingId = null;
+
+    function showToast(msg, type = "info") {
+      const t = document.getElementById("toast");
+      t.textContent = msg;
+      t.classList.remove("hidden");
+      t.className = "fixed top-16 right-4 z-50 px-4 py-2 rounded-lg shadow-lg text-sm " +
+        (type === "success" ? "bg-emerald-500 text-white" :
+          type === "error" ? "bg-rose-600 text-white" :
+            "bg-gray-800 text-white");
+      setTimeout(() => t.classList.add("hidden"), 2500);
+    }
+
+    function setLoading(state) {
+      document.getElementById("loadingIndicator").classList[state ? "remove" : "add"]("hidden");
+    }
+
+    function formatRupiah(num) {
+      if (!num) return "Rp 0";
+      return "Rp " + num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    }
+
+    async function fetchSummary() {
+      const res = await fetch(`${API_BASE}?action=summary&userId=${currentUserId}&month=${currentMonth}&year=${currentYear}`);
+      return res.json();
+    }
+
+    async function fetchCategories() {
+      const res = await fetch(`${API_BASE}?action=categories&userId=${currentUserId}`);
+      return res.json();
+    }
+
+    async function fetchSources() {
+      const res = await fetch(`${API_BASE}?action=sources&userId=${currentUserId}`);
+      return res.json();
+    }
+
+    async function addTransaksi(p) {
+      const f = new URLSearchParams({ action: "add", ...p });
+      const r = await fetch(API_BASE, { method: "POST", body: f });
+      return r.json();
+    }
+
+    async function deleteTransaksi(id) {
+      const f = new URLSearchParams({ action: "delete", id, userId: currentUserId });
+      const r = await fetch(API_BASE, { method: "POST", body: f });
+      return r.json();
+    }
+
+    async function updateTransaksi(p) {
+      const f = new URLSearchParams({ action: "update", ...p });
+      const r = await fetch(API_BASE, { method: "POST", body: f });
+      return r.json();
+    }
+
+    function updateSummaryUI(data) {
+      summaryCache = data;
+      transaksiCache = data.transaksi || [];
+
+      document.getElementById("totalMasukLabel").textContent = formatRupiah(data.totalMasuk);
+      document.getElementById("totalKeluarLabel").textContent = formatRupiah(data.totalKeluar);
+      document.getElementById("saldoLabel").textContent = formatRupiah(data.saldo);
+
+      renderTransaksiTable();
+      renderRekapKategori();
+      updateCharts();
+      populateFilters();
+    }
+
+    function populateFilters() {
+      const kategoriSet = new Set(transaksiCache.map(a => a.kategori).filter(Boolean));
+      const sumberSet = new Set(transaksiCache.map(a => a.sumber).filter(Boolean));
+
+      const fk = document.getElementById("filterKategoriSelect");
+      const fs = document.getElementById("filterSumberSelect");
+
+      fk.innerHTML = `<option value="ALL">Semua</option>` +
+        [...kategoriSet].map(k => `<option>${k}</option>`).join("");
+      fs.innerHTML = `<option value="ALL">Semua</option>` +
+        [...sumberSet].map(s => `<option>${s}</option>`).join("");
+
+      document.getElementById("kategoriSelect").innerHTML =
+        `<option value="">(Pilih / ketik baru)</option>` +
+        [...kategoriSet].map(k => `<option>${k}</option>`).join("");
+
+      document.getElementById("sumberSelect").innerHTML =
+        `<option value="">(Pilih / ketik baru)</option>` +
+        [...sumberSet].map(s => `<option>${s}</option>`).join("");
+    }
+
+    function getFilteredTransaksi() {
+      const jenis = document.getElementById("filterJenisSelect").value;
+      const kat = document.getElementById("filterKategoriSelect").value;
+      const src = document.getElementById("filterSumberSelect").value;
+
+      return transaksiCache.filter(t =>
+        (jenis === "ALL" || t.jenis === jenis) &&
+        (kat === "ALL" || t.kategori === kat) &&
+        (src === "ALL" || t.sumber === src)
+      );
+    }
+
+    function renderRekapKategori() {
+      const tbody = document.getElementById("rekapKategoriBody");
+      const rk = summaryCache.perKategori || [];
+      tbody.innerHTML = rk.map(r => `
+        <tr class="border-b border-gray-100 dark:border-gray-800">
+          <td class="px-2 py-1">${r.kategori}</td>
+          <td class="px-2 py-1 text-right">${formatRupiah(r.masuk)}</td>
+          <td class="px-2 py-1 text-right">${formatRupiah(r.keluar)}</td>
+          <td class="px-2 py-1 text-right">${formatRupiah(r.saldo)}</td>
+        </tr>
+      `).join("") || `
+        <tr><td colspan="4" class="text-center text-gray-400 py-3">Belum ada data</td></tr>
+      `;
+    }
+
+    function updateCharts() {
+      const ctx1 = document.getElementById("kategoriChart");
+      const ctx2 = document.getElementById("sumberChart");
+
+      const kat = summaryCache.perKategori || [];
+      const src = summaryCache.perSumber || [];
+
+      if (kategoriChart) kategoriChart.destroy();
+      if (sumberChart) sumberChart.destroy();
+
+      kategoriChart = new Chart(ctx1, {
+        type: "bar",
+        data: {
+          labels: kat.map(k => k.kategori),
+          datasets: [{ label: "Pengeluaran", data: kat.map(k => k.keluar) }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+      });
+
+      sumberChart = new Chart(ctx2, {
+        type: "doughnut",
+        data: {
+          labels: src.map(s => s.sumber),
+          datasets: [{ data: src.map(s => s.keluar) }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+      });
+    }
+
+    function renderTransaksiTable() {
+      const tbody = document.getElementById("transaksiBody");
+      const list = getFilteredTransaksi();
+
+      tbody.innerHTML = list.map(t => `
+        <tr class="border-b border-gray-100 dark:border-gray-800 swipe-row" data-id="${t.id}">
+          <td class="px-2 py-1">
+            <button onclick="openEditModal(${t.id})"
+              class="text-[11px] px-2 py-0.5 border border-blue-400 text-blue-600 rounded-full mr-1">Edit</button>
+            <button onclick="handleDelete(${t.id})"
+              class="text-[11px] px-2 py-0.5 border border-rose-400 text-rose-600 rounded-full">Del</button>
+          </td>
+          <td class="px-2 py-1">${t.tanggal}</td>
+          <td class="px-2 py-1">${t.jenis}</td>
+          <td class="px-2 py-1">${t.kategori}</td>
+          <td class="px-2 py-1">${t.sumber}</td>
+          <td class="px-2 py-1">${t.deskripsi}</td>
+          <td class="px-2 py-1 text-right">${formatRupiah(t.jumlah)}</td>
+        </tr>
+      `).join("") || `
+        <tr><td colspan="7" class="text-center text-gray-400 py-3">Belum ada transaksi</td></tr>
+      `;
+    }
+
+    async function handleDelete(id) {
+      if (!confirm("Hapus transaksi ini?")) return;
+      setLoading(true);
+      const res = await deleteTransaksi(id);
+      setLoading(false);
+      if (res.success) {
+        showToast("Transaksi dihapus", "success");
+        loadAllData();
+      } else showToast(res.error, "error");
+    }
+
+    function openEditModal(id) {
+      const t = transaksiCache.find(x => x.id == id);
+      editingId = id;
+
+      document.getElementById("editIdInput").value = id;
+      document.getElementById("editTanggalInput").value = t.tanggal;
+      document.getElementById("editJenisSelect").value = t.jenis;
+      document.getElementById("editKategoriInput").value = t.kategori;
+      document.getElementById("editSumberInput").value = t.sumber;
+      document.getElementById("editDeskripsiInput").value = t.deskripsi;
+      document.getElementById("editJumlahInput").value = t.jumlah;
+
+      document.getElementById("editModal").classList.remove("hidden");
+    }
+
+    function closeEditModal() {
+      editingId = null;
+      document.getElementById("editModal").classList.add("hidden");
+    }
+
+    async function loadAllData() {
+      setLoading(true);
+      const [s, cat, src] = await Promise.all([
+        fetchSummary(), fetchCategories(), fetchSources()
+      ]);
+      setLoading(false);
+      if (!s.success) return showToast(s.error, "error");
+      updateSummaryUI(s);
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const saved = localStorage.getItem("userId");
+      if (saved) {
+        currentUserId = saved;
+        document.getElementById("currentUserLabel").textContent = saved;
+        document.getElementById("loginSection").classList.add("hidden");
+        document.getElementById("dashboardSection").classList.remove("hidden");
+        loadAllData();
+      } else {
+        document.getElementById("loginSection").classList.remove("hidden");
+      }
+
+      document.getElementById("saveUserIdBtn").onclick = () => {
+        const id = document.getElementById("userIdInput").value.trim();
+        if (!id) return showToast("User ID tidak boleh kosong", "error");
+        localStorage.setItem("userId", id);
+        location.reload();
+      };
+
+      document.getElementById("changeUserBtn").onclick = () => {
+        localStorage.removeItem("userId");
+        location.reload();
+      };
+
+      document.getElementById("refreshBtn").onclick = loadAllData;
+
+      document.getElementById("filterJenisSelect").onchange = renderTransaksiTable;
+      document.getElementById("filterKategoriSelect").onchange = renderTransaksiTable;
+      document.getElementById("filterSumberSelect").onchange = renderTransaksiTable;
+
+      document.getElementById("addForm").onsubmit = async (e) => {
+        e.preventDefault();
+
+        const tanggal = tanggalInput.value;
+        const jenis = jenisSelect.value;
+        const kategori = kategoriBaruInput.value || kategoriSelect.value;
+        const sumber = sumberBaruInput.value || sumberSelect.value;
+        const deskripsi = deskripsiInput.value;
+        const jumlah = jumlahInput.value;
+
+        if (!jumlah) return showToast("Jumlah wajib diisi", "error");
+
+        setLoading(true);
+        const res = await addTransaksi({
+          userId: currentUserId, tanggal, jenis, kategori, sumber, deskripsi, jumlah
+        });
+        setLoading(false);
+
+        if (res.success) {
+          showToast("Transaksi ditambahkan", "success");
+          deskripsiInput.value = "";
+          jumlahInput.value = "";
+          kategoriBaruInput.value = "";
+          sumberBaruInput.value = "";
+          loadAllData();
+        } else {
+          showToast(res.error, "error");
+        }
+      };
+
+      document.getElementById("editForm").onsubmit = async (e) => {
+        e.preventDefault();
+        const id = editingId;
+        const tanggal = editTanggalInput.value;
+        const jenis = editJenisSelect.value;
+        const kategori = editKategoriInput.value;
+        const sumber = editSumberInput.value;
+        const deskripsi = editDeskripsiInput.value;
+        const jumlah = editJumlahInput.value;
+
+        setLoading(true);
+        const res = await updateTransaksi({
+          id, userId: currentUserId, tanggal, jenis, kategori, sumber, deskripsi, jumlah
+        });
+        setLoading(false);
+
+        if (res.success) {
+          showToast("Transaksi diperbarui", "success");
+          closeEditModal();
+          loadAllData();
+        } else showToast(res.error, "error");
+      };
+
+      document.getElementById("editModalCloseBtn").onclick = closeEditModal;
+      document.getElementById("editModalCancelBtn").onclick = closeEditModal;
+      document.getElementById("editModal").onclick = e => {
+        if (e.target.id === "editModal") closeEditModal();
+      };
+
+      document.getElementById("exportCsvBtn").onclick = () => {
+        const rows = getFilteredTransaksi();
+        if (!rows.length) return showToast("Tidak ada data", "info");
+
+        let csv = "Tanggal,Jenis,Kategori,Sumber,Deskripsi,Jumlah\n";
+        rows.forEach(r => {
+          csv += `"${r.tanggal}","${r.jenis}","${r.kategori}","${r.sumber}","${r.deskripsi.replace(/\n/g,' ')}","${r.jumlah}"\n`;
+        });
+
+        const blob = new Blob([csv], { type: "text/csv" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = `transaksi_${currentYear}_${currentMonth}.csv`;
+        a.click();
+      };
+
+      // Theme
+      document.getElementById("toggleThemeBtn").onclick = () => {
+        const html = document.documentElement;
+        const dark = html.classList.toggle("dark");
+        localStorage.setItem("theme", dark ? "dark" : "light");
+      };
+
+      // Populate month-year selects
+      const mSel = document.getElementById("monthSelect");
+      const ySel = document.getElementById("yearSelect");
+
+      for (let m = 1; m <= 12; m++) {
+        const opt = document.createElement("option");
+        opt.value = m;
+        opt.textContent = m.toString().padStart(2, "0");
+        if (m === currentMonth) opt.selected = true;
+        mSel.appendChild(opt);
+      }
+
+      const nowYear = new Date().getFullYear();
+      for (let y = nowYear - 3; y <= nowYear + 3; y++) {
+        const opt = document.createElement("option");
+        opt.value = y;
+        opt.textContent = y;
+        if (y === currentYear) opt.selected = true;
+        ySel.appendChild(opt);
+      }
+
+      mSel.onchange = () => currentMonth = parseInt(mSel.value);
+      ySel.onchange = () => currentYear = parseInt(ySel.value);
+    });
+  </script>
+
+</body>
+</html>
