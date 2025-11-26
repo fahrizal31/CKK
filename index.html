@@ -11,7 +11,7 @@
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <!-- Init dark mode -->
+  <!-- Init dark mode sebelum render -->
   <script>
     (function () {
       const theme = localStorage.getItem("theme") || "light";
@@ -23,7 +23,6 @@
     ::-webkit-scrollbar { width: 8px; height: 8px; }
     ::-webkit-scrollbar-thumb { background: #999; border-radius: 4px; }
 
-    /* Row swipe (but no overlay!) */
     .swipe-row {
       position: relative;
       overflow: hidden;
@@ -33,13 +32,16 @@
 
 <body class="h-full bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
 
+  <!-- TOAST -->
   <div id="toast" class="hidden fixed top-16 right-4 z-50 px-4 py-2 rounded-lg shadow-lg text-sm"></div>
 
   <!-- NAVBAR -->
   <header class="sticky top-0 z-20 bg-white/70 dark:bg-gray-900/70 backdrop-blur border-b border-gray-200 dark:border-gray-700">
     <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
       <div class="flex items-center gap-2">
-        <div class="w-8 h-8 bg-gradient-to-br from-emerald-400 to-cyan-500 rounded-xl text-white flex items-center justify-center font-bold">Rp</div>
+        <div class="w-8 h-8 bg-gradient-to-br from-emerald-400 to-cyan-500 rounded-xl text-white flex items-center justify-center font-bold">
+          Rp
+        </div>
         <div>
           <h1 class="text-lg font-semibold">KeuanganKu</h1>
           <p class="text-xs text-gray-500 dark:text-gray-400">Catatan keuangan pribadi multi-user</p>
@@ -58,21 +60,23 @@
   <section id="loginSection" class="max-w-md mx-auto mt-12 hidden">
     <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg">
       <h2 class="text-lg font-semibold mb-3">Masukkan User ID</h2>
-      <p class="text-xs text-gray-500 mb-3">Gunakan email, nama, atau ID bebas.</p>
+      <p class="text-xs text-gray-500 mb-3">Gunakan email, nama, atau ID bebas. Data disimpan per userId.</p>
 
       <input id="userIdInput" type="text"
         class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-900"
-        placeholder="contoh: admin@email.com">
+        placeholder="contoh: nama@email.com">
 
       <button id="saveUserIdBtn"
-        class="w-full mt-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg py-2 text-sm">Masuk</button>
+        class="w-full mt-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg py-2 text-sm">
+        Masuk
+      </button>
     </div>
   </section>
 
   <!-- DASHBOARD -->
   <section id="dashboardSection" class="max-w-6xl mx-auto px-4 py-6 hidden">
 
-    <!-- USER + FILTER -->
+    <!-- USER + FILTER WAKTU -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
       <div>
         <p class="text-xs text-gray-500">User Aktif</p>
@@ -80,7 +84,9 @@
           <span id="currentUserLabel"
             class="text-xs px-2 py-1 rounded-full bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-200"></span>
           <button id="changeUserBtn"
-            class="text-xs px-2 py-1 rounded-full border border-gray-300 dark:border-gray-600">Ganti User</button>
+            class="text-xs px-2 py-1 rounded-full border border-gray-300 dark:border-gray-600">
+            Ganti User
+          </button>
         </div>
       </div>
 
@@ -109,15 +115,15 @@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
       <div class="bg-white dark:bg-gray-800 p-4 rounded-2xl shadow border border-emerald-100 dark:border-emerald-900/40">
         <p class="text-xs text-gray-500">Total Pemasukan</p>
-        <p id="totalMasukLabel" class="text-lg font-semibold text-emerald-600 dark:text-emerald-300 mt-1"></p>
+        <p id="totalMasukLabel" class="text-lg font-semibold text-emerald-600 dark:text-emerald-300 mt-1">Rp 0</p>
       </div>
       <div class="bg-white dark:bg-gray-800 p-4 rounded-2xl shadow border border-rose-100 dark:border-rose-900/40">
         <p class="text-xs text-gray-500">Total Pengeluaran</p>
-        <p id="totalKeluarLabel" class="text-lg font-semibold text-rose-600 dark:text-rose-300 mt-1"></p>
+        <p id="totalKeluarLabel" class="text-lg font-semibold text-rose-600 dark:text-rose-300 mt-1">Rp 0</p>
       </div>
       <div class="bg-white dark:bg-gray-800 p-4 rounded-2xl shadow border border-indigo-100 dark:border-indigo-900/40">
         <p class="text-xs text-gray-500">Saldo</p>
-        <p id="saldoLabel" class="text-lg font-semibold text-indigo-600 dark:text-indigo-300 mt-1"></p>
+        <p id="saldoLabel" class="text-lg font-semibold text-indigo-600 dark:text-indigo-300 mt-1">Rp 0</p>
       </div>
     </div>
 
@@ -182,7 +188,8 @@
 
           <div>
             <label>Deskripsi</label>
-            <textarea id="deskripsiInput" class="w-full mt-1 rounded-lg border dark:border-gray-700 px-2 py-1.5 bg-gray-50 dark:bg-gray-900"
+            <textarea id="deskripsiInput"
+              class="w-full mt-1 rounded-lg border dark:border-gray-700 px-2 py-1.5 bg-gray-50 dark:bg-gray-900"
               rows="2"></textarea>
           </div>
 
@@ -194,11 +201,13 @@
           </div>
 
           <button type="submit"
-            class="w-full bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg py-2 mt-3">Simpan</button>
+            class="w-full bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg py-2 mt-3">
+            Simpan
+          </button>
         </form>
       </div>
 
-      <!-- REKAP -->
+      <!-- REKAP KATEGORI -->
       <div class="bg-white dark:bg-gray-800 p-4 rounded-2xl shadow">
         <h3 class="text-sm font-semibold mb-3">Rekap per Kategori</h3>
 
@@ -219,7 +228,7 @@
 
     </div>
 
-    <!-- FILTER + TABLE -->
+    <!-- FILTER + TABEL -->
     <div class="bg-white dark:bg-gray-800 p-4 rounded-2xl shadow mt-6">
 
       <div class="flex flex-col md:flex-row justify-between md:items-end gap-3 mb-4">
@@ -252,7 +261,9 @@
         </div>
 
         <button id="exportCsvBtn"
-          class="text-xs px-3 py-1.5 rounded-full border border-gray-300 dark:border-gray-700">Export CSV</button>
+          class="text-xs px-3 py-1.5 rounded-full border border-gray-300 dark:border-gray-700">
+          Export CSV
+        </button>
       </div>
 
       <div class="overflow-x-auto max-h-80 border border-gray-200 dark:border-gray-700 rounded-lg">
@@ -282,7 +293,10 @@
     <div class="bg-white dark:bg-gray-900 p-4 rounded-2xl shadow-xl max-w-md w-full text-xs">
       <div class="flex justify-between items-center mb-3">
         <h3 class="text-sm font-semibold">Edit Transaksi</h3>
-        <button id="editModalCloseBtn" class="px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-lg">Tutup</button>
+        <button id="editModalCloseBtn"
+          class="px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-lg">
+          Tutup
+        </button>
       </div>
 
       <form id="editForm" class="space-y-3">
@@ -320,7 +334,8 @@
         <div>
           <label>Deskripsi</label>
           <textarea id="editDeskripsiInput"
-            class="w-full mt-1 rounded-lg border dark:border-gray-700 px-2 py-1.5 bg-gray-50 dark:bg-gray-900" rows="2"></textarea>
+            class="w-full mt-1 rounded-lg border dark:border-gray-700 px-2 py-1.5 bg-gray-50 dark:bg-gray-900"
+            rows="2"></textarea>
         </div>
 
         <div>
@@ -331,9 +346,13 @@
 
         <div class="flex justify-end gap-2 pt-2">
           <button type="button" id="editModalCancelBtn"
-            class="px-3 py-1.5 border border-gray-300 dark:border-gray-700 rounded-lg">Batal</button>
+            class="px-3 py-1.5 border border-gray-300 dark:border-gray-700 rounded-lg">
+            Batal
+          </button>
           <button type="submit"
-            class="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg">Simpan</button>
+            class="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg">
+            Simpan
+          </button>
         </div>
       </form>
     </div>
@@ -341,50 +360,73 @@
 
   <!-- SCRIPT LOGIC -->
   <script>
+    // GANTI DENGAN URL WEB APP KAMU
     const API_BASE = "https://script.google.com/macros/s/AKfycbyOxOhgRjnlS21BC9fz9ZYHI4Y-f8UGRSxA_4mFOgpKmOI8Mu7v2gF2diBpW2nJ4LwWLw/exec";
-    
 
     let currentUserId = null;
     let currentMonth = new Date().getMonth() + 1;
     let currentYear = new Date().getFullYear();
+
     let transaksiCache = [];
-    let summaryCache = [];
+    let summaryCache = null;
+
+    let kategoriMaster = [];
+    let sumberMaster = [];
+
     let kategoriChart = null;
     let sumberChart = null;
     let editingId = null;
 
+    // UTIL
     function showToast(msg, type = "info") {
       const t = document.getElementById("toast");
       t.textContent = msg;
       t.classList.remove("hidden");
       t.className = "fixed top-16 right-4 z-50 px-4 py-2 rounded-lg shadow-lg text-sm " +
-        (type === "success" ? "bg-emerald-500 text-white" :
-          type === "error" ? "bg-rose-600 text-white" :
-            "bg-gray-800 text-white");
+        (type === "success"
+          ? "bg-emerald-500 text-white"
+          : type === "error"
+            ? "bg-rose-600 text-white"
+            : "bg-gray-800 text-white");
       setTimeout(() => t.classList.add("hidden"), 2500);
     }
 
     function setLoading(state) {
-      document.getElementById("loadingIndicator").classList[state ? "remove" : "add"]("hidden");
+      document
+        .getElementById("loadingIndicator")
+        .classList[state ? "remove" : "add"]("hidden");
     }
 
     function formatRupiah(num) {
-      if (!num) return "Rp 0";
-      return "Rp " + num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+      const n = Number(num) || 0;
+      return "Rp " + n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
     }
 
+    // API
     async function fetchSummary() {
-      const res = await fetch(`${API_BASE}?action=summary&userId=${currentUserId}&month=${currentMonth}&year=${currentYear}`);
+      const res = await fetch(
+        `${API_BASE}?action=summary&userId=${encodeURIComponent(
+          currentUserId
+        )}&month=${currentMonth}&year=${currentYear}`
+      );
       return res.json();
     }
 
     async function fetchCategories() {
-      const res = await fetch(`${API_BASE}?action=categories&userId=${currentUserId}`);
+      const res = await fetch(
+        `${API_BASE}?action=categories&userId=${encodeURIComponent(
+          currentUserId
+        )}`
+      );
       return res.json();
     }
 
     async function fetchSources() {
-      const res = await fetch(`${API_BASE}?action=sources&userId=${currentUserId}`);
+      const res = await fetch(
+        `${API_BASE}?action=sources&userId=${encodeURIComponent(
+          currentUserId
+        )}`
+      );
       return res.json();
     }
 
@@ -406,6 +448,7 @@
       return r.json();
     }
 
+    // UI UPDATE
     function updateSummaryUI(data) {
       summaryCache = data;
       transaksiCache = data.transaksi || [];
@@ -414,31 +457,37 @@
       document.getElementById("totalKeluarLabel").textContent = formatRupiah(data.totalKeluar);
       document.getElementById("saldoLabel").textContent = formatRupiah(data.saldo);
 
-      renderTransaksiTable();
+      populateDropdowns();
       renderRekapKategori();
+      renderTransaksiTable();
       updateCharts();
-      populateFilters();
     }
 
-    function populateFilters() {
-      const kategoriSet = new Set(transaksiCache.map(a => a.kategori).filter(Boolean));
-      const sumberSet = new Set(transaksiCache.map(a => a.sumber).filter(Boolean));
+    function populateDropdowns() {
+      const kategoriSet = new Set(kategoriMaster || []);
+      const sumberSet = new Set(sumberMaster || []);
+
+      transaksiCache.forEach(t => {
+        if (t.kategori) kategoriSet.add(t.kategori);
+        if (t.sumber) sumberSet.add(t.sumber);
+      });
 
       const fk = document.getElementById("filterKategoriSelect");
       const fs = document.getElementById("filterSumberSelect");
+      const katSelect = document.getElementById("kategoriSelect");
+      const srcSelect = document.getElementById("sumberSelect");
 
       fk.innerHTML = `<option value="ALL">Semua</option>` +
-        [...kategoriSet].map(k => `<option>${k}</option>`).join("");
+        [...kategoriSet].sort().map(k => `<option value="${k}">${k}</option>`).join("");
+
       fs.innerHTML = `<option value="ALL">Semua</option>` +
-        [...sumberSet].map(s => `<option>${s}</option>`).join("");
+        [...sumberSet].sort().map(s => `<option value="${s}">${s}</option>`).join("");
 
-      document.getElementById("kategoriSelect").innerHTML =
-        `<option value="">(Pilih / ketik baru)</option>` +
-        [...kategoriSet].map(k => `<option>${k}</option>`).join("");
+      katSelect.innerHTML = `<option value="">(Pilih / ketik baru)</option>` +
+        [...kategoriSet].sort().map(k => `<option value="${k}">${k}</option>`).join("");
 
-      document.getElementById("sumberSelect").innerHTML =
-        `<option value="">(Pilih / ketik baru)</option>` +
-        [...sumberSet].map(s => `<option>${s}</option>`).join("");
+      srcSelect.innerHTML = `<option value="">(Pilih / ketik baru)</option>` +
+        [...sumberSet].sort().map(s => `<option value="${s}">${s}</option>`).join("");
     }
 
     function getFilteredTransaksi() {
@@ -455,7 +504,13 @@
 
     function renderRekapKategori() {
       const tbody = document.getElementById("rekapKategoriBody");
-      const rk = summaryCache.perKategori || [];
+      const rk = (summaryCache && summaryCache.perKategori) || [];
+
+      if (!rk.length) {
+        tbody.innerHTML = `<tr><td colspan="4" class="text-center text-gray-400 py-3">Belum ada data</td></tr>`;
+        return;
+      }
+
       tbody.innerHTML = rk.map(r => `
         <tr class="border-b border-gray-100 dark:border-gray-800">
           <td class="px-2 py-1">${r.kategori}</td>
@@ -463,17 +518,15 @@
           <td class="px-2 py-1 text-right">${formatRupiah(r.keluar)}</td>
           <td class="px-2 py-1 text-right">${formatRupiah(r.saldo)}</td>
         </tr>
-      `).join("") || `
-        <tr><td colspan="4" class="text-center text-gray-400 py-3">Belum ada data</td></tr>
-      `;
+      `).join("");
     }
 
     function updateCharts() {
       const ctx1 = document.getElementById("kategoriChart");
       const ctx2 = document.getElementById("sumberChart");
 
-      const kat = summaryCache.perKategori || [];
-      const src = summaryCache.perSumber || [];
+      const kat = (summaryCache && summaryCache.perKategori) || [];
+      const src = (summaryCache && summaryCache.perSumber) || [];
 
       if (kategoriChart) kategoriChart.destroy();
       if (sumberChart) sumberChart.destroy();
@@ -501,6 +554,11 @@
       const tbody = document.getElementById("transaksiBody");
       const list = getFilteredTransaksi();
 
+      if (!list.length) {
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center text-gray-400 py-3">Belum ada transaksi</td></tr>`;
+        return;
+      }
+
       tbody.innerHTML = list.map(t => `
         <tr class="border-b border-gray-100 dark:border-gray-800 swipe-row" data-id="${t.id}">
           <td class="px-2 py-1">
@@ -516,9 +574,7 @@
           <td class="px-2 py-1">${t.deskripsi}</td>
           <td class="px-2 py-1 text-right">${formatRupiah(t.jumlah)}</td>
         </tr>
-      `).join("") || `
-        <tr><td colspan="7" class="text-center text-gray-400 py-3">Belum ada transaksi</td></tr>
-      `;
+      `).join("");
     }
 
     async function handleDelete(id) {
@@ -529,13 +585,16 @@
       if (res.success) {
         showToast("Transaksi dihapus", "success");
         loadAllData();
-      } else showToast(res.error, "error");
+      } else {
+        showToast(res.error || "Gagal menghapus", "error");
+      }
     }
 
     function openEditModal(id) {
       const t = transaksiCache.find(x => x.id == id);
-      editingId = id;
+      if (!t) return;
 
+      editingId = id;
       document.getElementById("editIdInput").value = id;
       document.getElementById("editTanggalInput").value = t.tanggal;
       document.getElementById("editJenisSelect").value = t.jenis;
@@ -553,88 +612,178 @@
     }
 
     async function loadAllData() {
+      if (!currentUserId) return;
       setLoading(true);
-      const [s, cat, src] = await Promise.all([
-        fetchSummary(), fetchCategories(), fetchSources()
+      const [sum, cat, src] = await Promise.all([
+        fetchSummary(),
+        fetchCategories(),
+        fetchSources()
       ]);
       setLoading(false);
-      if (!s.success) return showToast(s.error, "error");
-      updateSummaryUI(s);
+
+      if (cat && cat.success) kategoriMaster = cat.categories || [];
+      if (src && src.success) sumberMaster = src.sources || [];
+
+      if (!sum.success) {
+        showToast(sum.error || "Gagal memuat data", "error");
+        return;
+      }
+      updateSummaryUI(sum);
     }
 
+    // DOM READY
     document.addEventListener("DOMContentLoaded", () => {
+      const loginSection = document.getElementById("loginSection");
+      const dashboardSection = document.getElementById("dashboardSection");
+
+      // Theme toggle
+      const themeBtn = document.getElementById("toggleThemeBtn");
+      const themeLabel = document.getElementById("themeLabel");
+      function refreshThemeLabel() {
+        const isDark = document.documentElement.classList.contains("dark");
+        themeLabel.textContent = isDark ? "Dark" : "Light";
+      }
+      refreshThemeLabel();
+      themeBtn.addEventListener("click", () => {
+        const isDark = document.documentElement.classList.toggle("dark");
+        localStorage.setItem("theme", isDark ? "dark" : "light");
+        refreshThemeLabel();
+      });
+
+      // Month / year select
+      const monthSelect = document.getElementById("monthSelect");
+      const yearSelect = document.getElementById("yearSelect");
+      const nowYear = new Date().getFullYear();
+
+      for (let m = 1; m <= 12; m++) {
+        const opt = document.createElement("option");
+        opt.value = m;
+        opt.textContent = m.toString().padStart(2, "0");
+        if (m === currentMonth) opt.selected = true;
+        monthSelect.appendChild(opt);
+      }
+
+      for (let y = nowYear - 3; y <= nowYear + 3; y++) {
+        const opt = document.createElement("option");
+        opt.value = y;
+        opt.textContent = y;
+        if (y === currentYear) opt.selected = true;
+        yearSelect.appendChild(opt);
+      }
+
+      monthSelect.onchange = () => { currentMonth = parseInt(monthSelect.value, 10); };
+      yearSelect.onchange = () => { currentYear = parseInt(yearSelect.value, 10); };
+
+      // Tanggal default form
+      document.getElementById("tanggalInput").value =
+        new Date().toISOString().slice(0, 10);
+
+      // User from localStorage
       const saved = localStorage.getItem("userId");
       if (saved) {
         currentUserId = saved;
+        loginSection.classList.add("hidden");
+        dashboardSection.classList.remove("hidden");
         document.getElementById("currentUserLabel").textContent = saved;
-        document.getElementById("loginSection").classList.add("hidden");
-        document.getElementById("dashboardSection").classList.remove("hidden");
         loadAllData();
       } else {
-        document.getElementById("loginSection").classList.remove("hidden");
+        loginSection.classList.remove("hidden");
       }
 
+      // Login
       document.getElementById("saveUserIdBtn").onclick = () => {
-        const id = document.getElementById("userIdInput").value.trim();
-        if (!id) return showToast("User ID tidak boleh kosong", "error");
-        localStorage.setItem("userId", id);
+        const v = document.getElementById("userIdInput").value.trim();
+        if (!v) {
+          showToast("User ID tidak boleh kosong", "error");
+          return;
+        }
+        localStorage.setItem("userId", v);
         location.reload();
       };
 
+      // Ganti user
       document.getElementById("changeUserBtn").onclick = () => {
         localStorage.removeItem("userId");
         location.reload();
       };
 
+      // Refresh
       document.getElementById("refreshBtn").onclick = loadAllData;
 
+      // Filter
       document.getElementById("filterJenisSelect").onchange = renderTransaksiTable;
       document.getElementById("filterKategoriSelect").onchange = renderTransaksiTable;
       document.getElementById("filterSumberSelect").onchange = renderTransaksiTable;
 
+      // Add form
       document.getElementById("addForm").onsubmit = async (e) => {
         e.preventDefault();
+        if (!currentUserId) {
+          showToast("Set userId dulu", "error");
+          return;
+        }
 
-        const tanggal = tanggalInput.value;
-        const jenis = jenisSelect.value;
-        const kategori = kategoriBaruInput.value || kategoriSelect.value;
-        const sumber = sumberBaruInput.value || sumberSelect.value;
-        const deskripsi = deskripsiInput.value;
-        const jumlah = jumlahInput.value;
+        const tanggal = document.getElementById("tanggalInput").value;
+        const jenis = document.getElementById("jenisSelect").value;
+        const kategori = document.getElementById("kategoriBaruInput").value.trim()
+          || document.getElementById("kategoriSelect").value;
+        const sumber = document.getElementById("sumberBaruInput").value.trim()
+          || document.getElementById("sumberSelect").value;
+        const deskripsi = document.getElementById("deskripsiInput").value.trim();
+        const jumlah = document.getElementById("jumlahInput").value.trim();
 
-        if (!jumlah) return showToast("Jumlah wajib diisi", "error");
+        if (!jumlah) {
+          showToast("Jumlah wajib diisi", "error");
+          return;
+        }
 
         setLoading(true);
         const res = await addTransaksi({
-          userId: currentUserId, tanggal, jenis, kategori, sumber, deskripsi, jumlah
+          userId: currentUserId,
+          tanggal,
+          jenis,
+          kategori,
+          sumber,
+          deskripsi,
+          jumlah
         });
         setLoading(false);
 
         if (res.success) {
           showToast("Transaksi ditambahkan", "success");
-          deskripsiInput.value = "";
-          jumlahInput.value = "";
-          kategoriBaruInput.value = "";
-          sumberBaruInput.value = "";
+          document.getElementById("deskripsiInput").value = "";
+          document.getElementById("jumlahInput").value = "";
+          document.getElementById("kategoriBaruInput").value = "";
+          document.getElementById("sumberBaruInput").value = "";
           loadAllData();
         } else {
-          showToast(res.error, "error");
+          showToast(res.error || "Gagal menambah", "error");
         }
       };
 
+      // Edit form
       document.getElementById("editForm").onsubmit = async (e) => {
         e.preventDefault();
+        if (!currentUserId || !editingId) return;
+
         const id = editingId;
-        const tanggal = editTanggalInput.value;
-        const jenis = editJenisSelect.value;
-        const kategori = editKategoriInput.value;
-        const sumber = editSumberInput.value;
-        const deskripsi = editDeskripsiInput.value;
-        const jumlah = editJumlahInput.value;
+        const tanggal = document.getElementById("editTanggalInput").value;
+        const jenis = document.getElementById("editJenisSelect").value;
+        const kategori = document.getElementById("editKategoriInput").value.trim();
+        const sumber = document.getElementById("editSumberInput").value.trim();
+        const deskripsi = document.getElementById("editDeskripsiInput").value.trim();
+        const jumlah = document.getElementById("editJumlahInput").value.trim();
 
         setLoading(true);
         const res = await updateTransaksi({
-          id, userId: currentUserId, tanggal, jenis, kategori, sumber, deskripsi, jumlah
+          id,
+          userId: currentUserId,
+          tanggal,
+          jenis,
+          kategori,
+          sumber,
+          deskripsi,
+          jumlah
         });
         setLoading(false);
 
@@ -642,63 +791,46 @@
           showToast("Transaksi diperbarui", "success");
           closeEditModal();
           loadAllData();
-        } else showToast(res.error, "error");
+        } else {
+          showToast(res.error || "Gagal update", "error");
+        }
       };
 
+      // Edit modal close
       document.getElementById("editModalCloseBtn").onclick = closeEditModal;
       document.getElementById("editModalCancelBtn").onclick = closeEditModal;
-      document.getElementById("editModal").onclick = e => {
+      document.getElementById("editModal").onclick = (e) => {
         if (e.target.id === "editModal") closeEditModal();
       };
 
+      // Export CSV
       document.getElementById("exportCsvBtn").onclick = () => {
         const rows = getFilteredTransaksi();
-        if (!rows.length) return showToast("Tidak ada data", "info");
+        if (!rows.length) {
+          showToast("Tidak ada data untuk diexport", "info");
+          return;
+        }
 
         let csv = "Tanggal,Jenis,Kategori,Sumber,Deskripsi,Jumlah\n";
         rows.forEach(r => {
-          csv += `"${r.tanggal}","${r.jenis}","${r.kategori}","${r.sumber}","${r.deskripsi.replace(/\n/g,' ')}","${r.jumlah}"\n`;
+          csv += `"${r.tanggal}","${r.jenis}","${r.kategori}","${r.sumber}","${(r.deskripsi || "").replace(/\n/g, " ")}","${r.jumlah}"\n`;
         });
 
-        const blob = new Blob([csv], { type: "text/csv" });
+        const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
-        a.href = URL.createObjectURL(blob);
-        a.download = `transaksi_${currentYear}_${currentMonth}.csv`;
+        a.href = url;
+        a.download = `transaksi_${currentUserId}_${currentYear}_${String(currentMonth).padStart(2,"0")}.csv`;
+        document.body.appendChild(a);
         a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
       };
-
-      // Theme
-      document.getElementById("toggleThemeBtn").onclick = () => {
-        const html = document.documentElement;
-        const dark = html.classList.toggle("dark");
-        localStorage.setItem("theme", dark ? "dark" : "light");
-      };
-
-      // Populate month-year selects
-      const mSel = document.getElementById("monthSelect");
-      const ySel = document.getElementById("yearSelect");
-
-      for (let m = 1; m <= 12; m++) {
-        const opt = document.createElement("option");
-        opt.value = m;
-        opt.textContent = m.toString().padStart(2, "0");
-        if (m === currentMonth) opt.selected = true;
-        mSel.appendChild(opt);
-      }
-
-      const nowYear = new Date().getFullYear();
-      for (let y = nowYear - 3; y <= nowYear + 3; y++) {
-        const opt = document.createElement("option");
-        opt.value = y;
-        opt.textContent = y;
-        if (y === currentYear) opt.selected = true;
-        ySel.appendChild(opt);
-      }
-
-      mSel.onchange = () => currentMonth = parseInt(mSel.value);
-      ySel.onchange = () => currentYear = parseInt(ySel.value);
     });
-  </script>
 
+    // supaya bisa dipakai di onclick HTML
+    window.openEditModal = openEditModal;
+    window.handleDelete = handleDelete;
+  </script>
 </body>
 </html>
